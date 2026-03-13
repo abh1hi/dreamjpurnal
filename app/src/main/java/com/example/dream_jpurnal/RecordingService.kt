@@ -21,6 +21,8 @@ class RecordingService : Service() {
 
             "START" -> startRecording()
             "STOP" -> stopRecording()
+            "PAUSE" -> pauseRecording()
+            "RESUME" -> resumeRecording()
         }
 
         return START_STICKY
@@ -28,16 +30,30 @@ class RecordingService : Service() {
 
     private var isRecording = false
 
-    private fun startRecording(){
-        if(isRecording) return
+    private fun startRecording() {
+        if (isRecording) return
 
         startForeground(
             1,
-            NotificationHelper.createNotification(this)
+            NotificationHelper.createNotification(this, false)
         )
 
         recorder.startRecording()
         isRecording = true
+    }
+
+    private fun pauseRecording() {
+        if (!isRecording) return
+        recorder.pauseRecording()
+        // Update notification to show "Paused"
+        startForeground(1, NotificationHelper.createNotification(this, true))
+    }
+
+    private fun resumeRecording() {
+        if (!isRecording) return
+        recorder.resumeRecording()
+        // Update notification to show "Recording"
+        startForeground(1, NotificationHelper.createNotification(this, false))
     }
 
     private fun stopRecording(){

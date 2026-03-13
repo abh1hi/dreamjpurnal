@@ -37,13 +37,27 @@ class RecorderManager(private val context: Context) {
         return file
     }
 
-    fun stopRecording() {
+    fun pauseRecording() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            recorder?.pause()
+        }
+    }
 
+    fun resumeRecording() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            recorder?.resume()
+        }
+    }
+
+    fun stopRecording() {
         recorder?.apply {
-            stop()
+            try {
+                stop()
+            } catch (e: Exception) {
+                // Handle cases where stop is called without enough data
+            }
             release()
         }
-
         recorder = null
     }
 }

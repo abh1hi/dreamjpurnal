@@ -23,23 +23,26 @@ object NotificationHelper {
         manager.createNotificationChannel(channel)
     }
 
-    fun createNotification(context: Context): Notification {
+    fun createNotification(context: Context, isPaused: Boolean): Notification {
 
-        val stopIntent = Intent(context, RecordingService::class.java)
-        stopIntent.action = "STOP"
+        val stopIntent = Intent(context, RecordingService::class.java).apply { action = "STOP" }
+        val pendingStop = PendingIntent.getService(context, 1, stopIntent, PendingIntent.FLAG_IMMUTABLE)
 
-        val pendingStop = PendingIntent.getService(
-            context,
-            1,
-            stopIntent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
+        val pauseResumeIntent = Intent(context, RecordingService::class.java).apply {
+            action = if (isPaused) "RESUME" else "PAUSE"
+        }
+        val pendingPauseResume = PendingIntent.getService(context, 2, pauseResumeIntent, PendingIntent.FLAG_IMMUTABLE)
+
+        val text = if (isPaused) "Recording paused" else "Recording dream..."
+        val pauseResumeLabel = if (isPaused) "Resume" else "Pause"
+        val pauseResumeIcon = if (isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause
 
         return NotificationCompat.Builder(context, CHANNEL)
             .setContentTitle("Dream Recorder")
-            .setContentText("Recording dream...")
+            .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
-            .addAction(android.R.drawable.ic_delete,"Stop",pendingStop)
+            .addAction(pauseResumeIcon, pauseResumeLabel, pendingPauseResume)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop", pendingStop)
             .setOngoing(true)
             .build()
     }
